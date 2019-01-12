@@ -6,4 +6,7 @@ def main():
         DNA.append(randint(0, 5))
         #print(DNA[i])
     print(DNA)
+
+
+    
 main()

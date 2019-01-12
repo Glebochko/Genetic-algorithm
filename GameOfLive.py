@@ -1,40 +1,15 @@
 from graphics import *
 from random import randint
 
-def face():
-    win = GraphWin('Face', 200, 150) # give title and dimensions
-    #win.yUp() # make right side up coordinates!
-
-    head = Circle(Point(40,100), 25) # set center and radius
-    head.setFill("yellow")
-    head.draw(win)
-
-    eye1 = Circle(Point(30, 105), 5)
-    eye1.setFill('blue')
-    eye1.draw(win)
-
-    eye2 = Line(Point(45, 105), Point(55, 105)) # set endpoints
-    eye2.setWidth(3)
-    eye2.draw(win)
-
-    mouth = Oval(Point(30, 90), Point(50, 85)) # set corners of bounding box
-    mouth.setFill("red")
-    mouth.draw(win)
-
-    label = Text(Point(100, 120), 'A face')
-    label.draw(win)
-
-    message = Text(Point(win.getWidth()/2, 20), 'Click anywhere to quit.')
-    message.draw(win)
-    win.getMouse()
-    win.close() 
 
 
 class bot:
-    def __init__(self, *args):
+    def __init__(self, x, y, *args):
         #type: 0 - new, 1 - old, 2 - mutant
         self.hp = 30
         self.maxhp = 99
+        self.x = x;
+        self.y = y;
         if (len(args) == 0):
             self.type = 0
             self.DNA = []
@@ -45,12 +20,21 @@ class bot:
         for i in range(64):
             self.DNA.append(randint(0, 63))
 
+    def drawline(self, window, x1, y1, x2, y2):
+        line = Line(Point(x1, y1), Point(x2, y2))
+        line.setFill('blue')
+        line.draw(window)
+
+    def darwbot(self, window, cellsize):
+        self.drawline(window, self.x * cellsize, self.y * cellsize, (self.x + 1) * cellsize, self.y * cellsize)
+
+
     def __str__(self):
         print(self.DNA)
-        return 'j'
+        return 'hp = 30' 
 
 
-class gameOfLive:
+class gen_alg:
     def __init__(self):
         self.cellsize = 10
 
@@ -81,20 +65,20 @@ class gameOfLive:
             y += self.cellsize
 
 
-    def startGame(self):
+    def start(self):
         self.drawCells()  
         self.pause()
     
 
 def main():
-    gol = gameOfLive()
+    gol = gen_alg()
     gol.createWindow(800, 600)
     gol.cellsize = 20
-    #gol.startGame()
+    gol.start()
 
-    newbot = bot()
+    #newbot = bot()
 
-    print(newbot)
+    #print(newbot)
 
 
 
