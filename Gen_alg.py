@@ -12,6 +12,7 @@ class bot:
         self.y = y;
         self.programCount = 0
         self.route = 5
+        self.createNewBot = 0
 
         if (len(args) == 0):
             self.type = 0
@@ -26,9 +27,10 @@ class bot:
 
     def act(self):
         goout = False
+        self.createNewBot = 0
         while (goout != True) :
             theAct = self.DNA[self.programCount]
-            if ((theAct >= 0) & (theAct < 16)):
+            if ((theAct >= 0) & (theAct < 8)):
                 motion = theAct + self.route
                 motion %= 8
                 if ((motion == 6)|(motion == 7)|(motion == 0)):
@@ -41,19 +43,27 @@ class bot:
                     self.y += 1
                 goout = True
 
-            elif ((theAct >= 16) & (theAct < 32)):
+            elif ((theAct >= 8) & (theAct < 16)):
                 self.route += theAct
                 self.route %= 8
+                #goout = True
+            elif ((theAct >= 16) & (theAct < 32)):
+                self.energy += 10
                 goout = True
-            elif ((theAct >= 32) & (theAct < 64)):
-                self.energy += 8
+            elif ((theAct >= 32) & (theAct < 40)):
+                if (self.energy >= 80):
+                    self.createNewBot = 1
+                    goout = True
+            elif ((theAct >= 40) & (theAct < 64)):
+                self.programCount += theAct - 1
+                #goout = True    
+            else :
                 goout = True
 
 
-
-        self.programCount += 1
-        if (self.programCount > 63):
-            self.programCount -= 64
+            self.programCount += 1
+            if (self.programCount > 63):
+                self.programCount -= 64
             
 
     def drawline(self, window, x1, y1, x2, y2):
@@ -82,7 +92,6 @@ class bot:
 
         cell.draw(window)
         self.showEnergy(window, cellsize)
-
 
     def __str__(self):
         print(self.DNA)
@@ -150,6 +159,10 @@ class gen_alg:
         for i in range(len(self.mybots)):
             self.mybots[i].energy -= 2
             self.mybots[i].act()
+            if (self.mybots[i].createNewBot == 1):
+                self.mybots[i].createNewBot = 0
+                self.mybots[i].energy -= 40
+                self.newbot(self.mybots[i].x + 1, self.mybots[i].y + 1)
 
     def worldLoop(self, n):
         self.window.getMouse()
