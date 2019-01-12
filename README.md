@@ -1,5 +1,5 @@
 # Genetic algorithm
-===
+
 
 Technology stack
 ---
