@@ -6,12 +6,12 @@ import time
 
 class bot:
     def __init__(self, x, y, *args):
-        #type: 0 - new, 1 - old, 2 - mutant
         self.energy = 30
         self.maxhp = 99
         self.x = x;
         self.y = y;
         self.programCount = 0
+        self.route = 5
 
         if (len(args) == 0):
             self.type = 0
@@ -21,19 +21,40 @@ class bot:
 
     def createDNA(self):
         for i in range(64):
-            #self.DNA.append(randint(0, 63))
-            self.DNA.append(25)
+            self.DNA.append(randint(0, 63))
+            #self.DNA.append(25)
 
     def act(self):
         goout = False
         while (goout != True) :
-            if (self.DNA[self.programCount] == 25):
-                self.energy += 5
+            theAct = self.DNA[self.programCount]
+            if ((theAct >= 0) & (theAct < 16)):
+                motion = theAct + self.route
+                motion %= 8
+                if ((motion == 6)|(motion == 7)|(motion == 0)):
+                    self.x -= 1
+                elif ((motion == 2)|(motion == 3)|(motion == 4)):
+                    self.x += 1
+                if ((motion == 0)|(motion == 1)|(motion == 2)):
+                    self.y -= 1
+                elif ((motion == 4)|(motion == 5)|(motion == 6)):
+                    self.y += 1
                 goout = True
 
-            self.programCount += 1
-            if (self.programCount > 63):
-                self.programCount -= 64
+            elif ((theAct >= 16) & (theAct < 32)):
+                self.route += theAct
+                self.route %= 8
+                goout = True
+            elif ((theAct >= 32) & (theAct < 64)):
+                self.energy += 8
+                goout = True
+
+
+
+        self.programCount += 1
+        if (self.programCount > 63):
+            self.programCount -= 64
+            
 
     def drawline(self, window, x1, y1, x2, y2):
         line = Line(Point(x1, y1), Point(x2, y2))
@@ -74,6 +95,7 @@ class gen_alg:
         self.cellsize = 10
 
     def createWindow(self, xmax, ymax, cellsize):
+        self.bgcolor = 'white'
         self.cellsize = cellsize
         self.xmax = xmax
         self.ymax = ymax
@@ -103,9 +125,24 @@ class gen_alg:
             y += self.cellsize
 
     def newbot(self, x, y):
+
         self.mybots.append(bot(x, y))
 
+    def windowClear(self):
+        p1 = Point(0, 0)
+        p2 = Point(self.width, 0)
+        p3 = Point(self.width, self.hight)
+        p4 = Point(0, self.hight)
+
+        verticles = [p1, p2, p3, p4]
+        bg = Polygon(verticles)
+        bg.setFill(self.bgcolor)
+        bg.setOutline(self.bgcolor)
+
+        bg.draw(self.window)
+
     def drawField(self):
+        self.windowClear()
         for i in range(len(self.mybots)):
             self.mybots[i].drawbot(self.window, self.cellsize)
 
@@ -117,10 +154,10 @@ class gen_alg:
     def worldLoop(self, n):
         self.window.getMouse()
 
-        for i in range(n):  
+        while (True):  
             self.drawField()
             self.botsAction()
-            time.sleep(1)
+            time.sleep(0.1)
 
         self.pause()
 
