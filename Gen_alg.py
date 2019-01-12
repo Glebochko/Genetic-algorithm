@@ -1,15 +1,18 @@
 from graphics import *
 from random import randint
+import time
 
 
 
 class bot:
     def __init__(self, x, y, *args):
         #type: 0 - new, 1 - old, 2 - mutant
-        self.hp = 30
+        self.energy = 30
         self.maxhp = 99
         self.x = x;
         self.y = y;
+        self.programCount = 0
+
         if (len(args) == 0):
             self.type = 0
             self.DNA = []
@@ -18,7 +21,19 @@ class bot:
 
     def createDNA(self):
         for i in range(64):
-            self.DNA.append(randint(0, 63))
+            #self.DNA.append(randint(0, 63))
+            self.DNA.append(25)
+
+    def act(self):
+        goout = False
+        while (goout != True) :
+            if (self.DNA[self.programCount] == 25):
+                self.energy += 5
+                goout = True
+
+            self.programCount += 1
+            if (self.programCount > 63):
+                self.programCount -= 64
 
     def drawline(self, window, x1, y1, x2, y2):
         line = Line(Point(x1, y1), Point(x2, y2))
@@ -26,26 +41,26 @@ class bot:
         line.setWidth(3)
         line.draw(window)
 
-    def showhp(self, window, cellsize):
-        botInformation = Text(Point(self.x * cellsize + cellsize/2, self.y * cellsize + cellsize/2), self.hp)
+    def showEnergy(self, window, cellsize):
+        botInformation = Text(Point(self.x * cellsize + cellsize/2, self.y * cellsize + cellsize/2), self.energy)
         botInformation.setFill('white')
         botInformation.draw(window)
 
     def drawbot(self, window, cellsize):
-        self.p1 = Point(self.x * cellsize, self.y * cellsize)
-        self.p2 = Point((self.x + 1) * cellsize, self.y * cellsize)
-        self.p3 = Point((self.x + 1) * cellsize, (self.y + 1) * cellsize)
-        self.p4 = Point(self.x * cellsize, (self.y + 1) * cellsize)
+        p1 = Point(self.x * cellsize, self.y * cellsize)
+        p2 = Point((self.x + 1) * cellsize, self.y * cellsize)
+        p3 = Point((self.x + 1) * cellsize, (self.y + 1) * cellsize)
+        p4 = Point(self.x * cellsize, (self.y + 1) * cellsize)
 
-        self.verticles = [self.p1, self.p2, self.p3, self.p4]
+        verticles = [p1, p2, p3, p4]
 
-        self.cell = Polygon(self.verticles)
-        self.cell.setFill('blue')
-        self.cell.setOutline('black')
-        self.cell.setWidth(1)
+        cell = Polygon(verticles)
+        cell.setFill('blue')
+        cell.setOutline('black')
+        cell.setWidth(1)
 
-        self.cell.draw(window)
-        self.showhp(window, cellsize)
+        cell.draw(window)
+        self.showEnergy(window, cellsize)
 
 
     def __str__(self):
@@ -64,7 +79,7 @@ class gen_alg:
         self.ymax = ymax
         self.width = self.xmax * self.cellsize
         self.hight = self.ymax * self.cellsize
-        self.window = GraphWin('Game Of Life', self.width, self.hight)
+        self.window = GraphWin('Genetic algorithm', self.width, self.hight)
     
     def drawline(self, x1, y1, x2, y2):
 
@@ -90,13 +105,32 @@ class gen_alg:
     def newbot(self, x, y):
         self.mybots.append(bot(x, y))
 
+    def drawField(self):
+        for i in range(len(self.mybots)):
+            self.mybots[i].drawbot(self.window, self.cellsize)
+
+    def botsAction(self):
+        for i in range(len(self.mybots)):
+            self.mybots[i].energy -= 2
+            self.mybots[i].act()
+
+    def worldLoop(self, n):
+        self.window.getMouse()
+
+        for i in range(n):  
+            self.drawField()
+            self.botsAction()
+            time.sleep(1)
+
+        self.pause()
 
     def start(self):
-        #self.drawCells() 
-        self.newbot(2, 5)
-        self.mybots[0].drawbot(self.window, self.cellsize)
-        #self.mybots[0].showhp(self.window, self.cellsize)
-        self.pause()
+        self.newbot(6, 5)
+        self.newbot(8, 7)
+        self.newbot(10, 6)
+        self.newbot(12, 5)
+
+        self.worldLoop(5)
     
 
 def main():

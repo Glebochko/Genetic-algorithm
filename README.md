@@ -1,1 +1,1 @@
-# Game-of-live
+# Genetic algorithm
