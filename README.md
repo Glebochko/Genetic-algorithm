@@ -3,6 +3,6 @@
 
 Technology stack
 ---
--Python3
--library graphics
+- Python3
+- Library Graphics
 
