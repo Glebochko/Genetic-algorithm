@@ -26,6 +26,11 @@ class bot:
         line.setWidth(3)
         line.draw(window)
 
+    def showhp(self, window, cellsize):
+        botInformation = Text(Point(self.x * cellsize + cellsize/2, self.y * cellsize + cellsize/2), self.hp)
+        botInformation.setFill('white')
+        botInformation.draw(window)
+
     def drawbot(self, window, cellsize):
         self.p1 = Point(self.x * cellsize, self.y * cellsize)
         self.p2 = Point((self.x + 1) * cellsize, self.y * cellsize)
@@ -40,6 +45,8 @@ class bot:
         self.cell.setWidth(1)
 
         self.cell.draw(window)
+        self.showhp(window, cellsize)
+
 
     def __str__(self):
         print(self.DNA)
@@ -87,7 +94,8 @@ class gen_alg:
     def start(self):
         #self.drawCells() 
         self.newbot(2, 5)
-        self.mybots[0].drawbot(self.window, self.cellsize) 
+        self.mybots[0].drawbot(self.window, self.cellsize)
+        #self.mybots[0].showhp(self.window, self.cellsize)
         self.pause()
     
 
