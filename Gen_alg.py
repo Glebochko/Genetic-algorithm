@@ -101,6 +101,7 @@ class bot:
 class gen_alg:
     def __init__(self):
         self.mybots = []
+        self.cellOccupancy = []
         self.cellsize = 10
 
     def createWindow(self, xmax, ymax, cellsize):
@@ -134,8 +135,8 @@ class gen_alg:
             y += self.cellsize
 
     def newbot(self, x, y):
-
         self.mybots.append(bot(x, y))
+        #self.cellOccupancy.append(1)
 
     def windowClear(self):
         p1 = Point(0, 0)
@@ -155,14 +156,19 @@ class gen_alg:
         for i in range(len(self.mybots)):
             self.mybots[i].drawbot(self.window, self.cellsize)
 
+    def botsBirth(self, parentBot):
+        parentBot.createNewBot = 0
+        parentBot.energy -= 40
+        self.newbot(parentBot.x + 1, parentBot.y + 1)
+        self.mybots[len(mybots)].DNA = parentBot.DNA
+
     def botsAction(self):
         for i in range(len(self.mybots)):
             self.mybots[i].energy -= 2
             self.mybots[i].act()
             if (self.mybots[i].createNewBot == 1):
-                self.mybots[i].createNewBot = 0
-                self.mybots[i].energy -= 40
-                self.newbot(self.mybots[i].x + 1, self.mybots[i].y + 1)
+                self.botsBirth(mybots[i])
+
 
     def worldLoop(self, n):
         self.window.getMouse()
