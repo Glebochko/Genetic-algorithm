@@ -9,7 +9,10 @@ class bot:
         self.energy = 30
         self.maxhp = 99
         self.x = x;
+        self.oldx = self.x
         self.y = y;
+        self.oldy = self.y
+        self.color = 'blue'
         self.programCount = 0
         self.route = 5
         self.createNewBot = 0
@@ -54,9 +57,11 @@ class bot:
                 if (self.energy >= 80):
                     self.createNewBot = 1
                     goout = True
-            elif ((theAct >= 40) & (theAct < 64)):
-                self.programCount += theAct - 1
-                #goout = True    
+            elif ((theAct >= 40) & (theAct < 61)):
+                self.programCount += (theAct - 1)
+                #goout = True   
+            elif ((theAct >= 61) & (theAct < 64)):
+                goout = True    
             else :
                 goout = True
 
@@ -77,7 +82,24 @@ class bot:
         botInformation.setFill('white')
         botInformation.draw(window)
 
-    def drawbot(self, window, cellsize):
+    def delOldBot(self, window, cellsize):
+        p1 = Point(self.oldx * cellsize, self.oldy * cellsize)
+        p2 = Point((self.oldx + 1) * cellsize, self.oldy * cellsize)
+        p3 = Point((self.oldx + 1) * cellsize, (self.oldy + 1) * cellsize)
+        p4 = Point(self.oldx * cellsize, (self.oldy + 1) * cellsize)
+
+        verticles = [p1, p2, p3, p4]
+
+        oldCell = Polygon(verticles)
+        oldCell.setFill('white')
+        #oldCell.setOutline('white')
+        #oldCell.setWidth(1)
+
+        oldCell.draw(window) 
+        self.oldx = self.x
+        self.oldy = self.y
+
+    def drawNewBot(self, window, cellsize):
         p1 = Point(self.x * cellsize, self.y * cellsize)
         p2 = Point((self.x + 1) * cellsize, self.y * cellsize)
         p3 = Point((self.x + 1) * cellsize, (self.y + 1) * cellsize)
@@ -85,13 +107,18 @@ class bot:
 
         verticles = [p1, p2, p3, p4]
 
-        cell = Polygon(verticles)
-        cell.setFill('blue')
-        cell.setOutline('black')
-        cell.setWidth(1)
+        newCell = Polygon(verticles)
+        newCell.setFill(self.color)
+        #newCell.setOutline('black')
+        #newCell.setWidth(1)
 
-        cell.draw(window)
+        newCell.draw(window) 
+
+    def drawbot(self, window, cellsize):
+        self.delOldBot(window, cellsize)
+        self.drawNewBot(window, cellsize)
         self.showEnergy(window, cellsize)
+        
 
     def __str__(self):
         print(self.DNA)
@@ -123,6 +150,25 @@ class gen_alg:
         self.window.getMouse()
         self.window.close()
 
+    def windowClear(self):
+        p1 = Point(0, 0)
+        p2 = Point(self.width, 0)
+        p3 = Point(self.width, self.hight)
+        p4 = Point(0, self.hight)
+
+        verticles = [p1, p2, p3, p4]
+        bg = Polygon(verticles)
+        bg.setFill(self.bgcolor)
+        bg.setOutline(self.bgcolor)
+
+        bg.draw(self.window)
+
+    def preStart(self):
+        message = Text(Point(self.width / 2, self.cellsize / 2), 'Click anywhere to start.')
+        message.draw(self.window)
+        self.window.getMouse()
+        self.windowClear()
+
     def drawCells(self):
         x, y = 0, 0
         
@@ -138,41 +184,32 @@ class gen_alg:
         self.mybots.append(bot(x, y))
         #self.cellOccupancy.append(1)
 
-    def windowClear(self):
-        p1 = Point(0, 0)
-        p2 = Point(self.width, 0)
-        p3 = Point(self.width, self.hight)
-        p4 = Point(0, self.hight)
-
-        verticles = [p1, p2, p3, p4]
-        bg = Polygon(verticles)
-        bg.setFill(self.bgcolor)
-        bg.setOutline(self.bgcolor)
-
-        bg.draw(self.window)
-
     def drawField(self):
-        self.windowClear()
+        #self.windowClear()
         for i in range(len(self.mybots)):
-            self.mybots[i].drawbot(self.window, self.cellsize)
+            thisBot = self.mybots[i]
+            if ((thisBot.oldx != thisBot.x) | (thisBot.oldy != thisBot.y)):
+                thisBot.drawbot(self.window, self.cellsize)
+                thisBot.oldx = thisBot.x
+                thisBot.oldy = thisBot.y
 
     def botsBirth(self, parentBot):
         parentBot.createNewBot = 0
         parentBot.energy -= 40
         self.newbot(parentBot.x + 1, parentBot.y + 1)
-        self.mybots[len(mybots)].DNA = parentBot.DNA
+        self.mybots[len(self.mybots) - 1].DNA = parentBot.DNA
 
     def botsAction(self):
         for i in range(len(self.mybots)):
             self.mybots[i].energy -= 2
             self.mybots[i].act()
             if (self.mybots[i].createNewBot == 1):
-                self.botsBirth(mybots[i])
+                self.botsBirth(self.mybots[i])
 
 
-    def worldLoop(self, n):
-        self.window.getMouse()
-
+    def worldLoop(self):
+        self.preStart()
+        self.drawCells()
         while (True):  
             self.drawField()
             self.botsAction()
@@ -186,7 +223,7 @@ class gen_alg:
         self.newbot(10, 6)
         self.newbot(12, 5)
 
-        self.worldLoop(5)
+        self.worldLoop()
     
 
 def main():
