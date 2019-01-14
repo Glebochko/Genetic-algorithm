@@ -7,20 +7,21 @@ import time
 class bot:
     def __init__(self, x, y, *args):
         self.energy = 30
-        self.maxhp = 99
+        self.alive = True
         self.x = x;
-        self.oldx = self.x
         self.y = y;
-        self.oldy = self.y
         self.color = 'blue'
+
         self.programCount = 0
         self.route = 5
         self.createNewBot = 0
 
         if (len(args) == 0):
-            self.type = 0
             self.DNA = []
             self.createDNA()
+
+        if (len(args) == 1):
+            self.DNA = args[0]
 
 
     def createDNA(self):
@@ -28,8 +29,10 @@ class bot:
             self.DNA.append(randint(0, 63))
             #self.DNA.append(25)
 
-    def act(self):
+    def act(self, celloccupancy):
         goout = False
+        oldx = self.x
+        oldy = self.y
         self.createNewBot = 0
         while (goout != True) :
             theAct = self.DNA[self.programCount]
@@ -44,6 +47,8 @@ class bot:
                     self.y -= 1
                 elif ((motion == 4)|(motion == 5)|(motion == 6)):
                     self.y += 1
+                celloccupancy[oldx][oldy] = 0
+                celloccupancy[self.x][self.y] = 1
                 goout = True
 
             elif ((theAct >= 8) & (theAct < 16)):
@@ -115,10 +120,11 @@ class bot:
         newCell.draw(window) 
 
     def drawbot(self, window, cellsize):
-        self.delOldBot(window, cellsize)
+        #if ((self.oldx != self.x) | (self.oldy != self.y)):
+            #self.delOldBot(window, cellsize)
         self.drawNewBot(window, cellsize)
-        self.showEnergy(window, cellsize)
-        
+        #if (self.alive):
+         #   self.showEnergy(window, cellsize)    
 
     def __str__(self):
         print(self.DNA)
@@ -128,7 +134,6 @@ class bot:
 class gen_alg:
     def __init__(self):
         self.mybots = []
-        self.cellOccupancy = []
         self.cellsize = 10
 
     def createWindow(self, xmax, ymax, cellsize):
@@ -136,6 +141,8 @@ class gen_alg:
         self.cellsize = cellsize
         self.xmax = xmax
         self.ymax = ymax
+        self.celloccupancy = [[0] * self.ymax for i in range(self.xmax)]
+        # 0 - free  1 - bot  2 - wall 3 - organics
         self.width = self.xmax * self.cellsize
         self.hight = self.ymax * self.cellsize
         self.window = GraphWin('Genetic algorithm', self.width, self.hight)
@@ -182,38 +189,61 @@ class gen_alg:
 
     def newbot(self, x, y):
         self.mybots.append(bot(x, y))
-        #self.cellOccupancy.append(1)
+        self.celloccupancy[x][y] = 1
+
+    def drawNotFreePoints(self):
+        for i in range(self.xmax):
+            for j in range(self.ymax):
+                if (self.celloccupancy[i][j] != 0):
+                    nfp = Point((i + 0.5) * self.cellsize, (j + 0.5) * self.cellsize)
+                    nfp.setOutline('green')
+                    nfp.draw(self.window)
 
     def drawField(self):
-        #self.windowClear()
+        self.windowClear()
         for i in range(len(self.mybots)):
             thisBot = self.mybots[i]
-            if ((thisBot.oldx != thisBot.x) | (thisBot.oldy != thisBot.y)):
-                thisBot.drawbot(self.window, self.cellsize)
-                thisBot.oldx = thisBot.x
-                thisBot.oldy = thisBot.y
+            thisBot.drawbot(self.window, self.cellsize)
+        self.drawNotFreePoints()
 
-    def botsBirth(self, parentBot):
+    def botBirth(self, parentBot):
         parentBot.createNewBot = 0
         parentBot.energy -= 40
         self.newbot(parentBot.x + 1, parentBot.y + 1)
         self.mybots[len(self.mybots) - 1].DNA = parentBot.DNA
 
+    def killBot(self, targetBot):
+        targetBot.energy = 0
+        targetBot.alive = False
+        targetBot.color = 'gray'
+        self.celloccupancy[targetBot.x][targetBot.y] = 3
+
     def botsAction(self):
         for i in range(len(self.mybots)):
-            self.mybots[i].energy -= 2
-            self.mybots[i].act()
-            if (self.mybots[i].createNewBot == 1):
-                self.botsBirth(self.mybots[i])
+            if (self.mybots[i].alive):
+                self.mybots[i].energy -= 6
+                if (self.mybots[i].energy > 0):
+                    self.mybots[i].act(self.celloccupancy)
+                    if (self.mybots[i].createNewBot == 1):
+                        self.botBirth(self.mybots[i])
+                else :
+                    self.killBot(self.mybots[i])
+
 
 
     def worldLoop(self):
         self.preStart()
-        self.drawCells()
+        #self.drawCells()
+        outputFrequency = 1
+        missedMoves = outputFrequency
+
         while (True):  
-            self.drawField()
+            if (missedMoves == outputFrequency):
+                self.drawField()
+                missedMoves = 0
+                time.sleep(0.6)
             self.botsAction()
-            time.sleep(0.1)
+            missedMoves += 1
 
         self.pause()
 
