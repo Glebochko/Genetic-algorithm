@@ -29,26 +29,47 @@ class bot:
             self.DNA.append(randint(0, 63))
             #self.DNA.append(25)
 
+    def move(self, dirmv, cellocp):
+        x = self.x
+        y = self.y
+        oldx = x
+        oldy = y
+
+        if ((dirmv == 0) & (cellocp[x - 1][y - 1] == 0)):
+            x -= 1
+            y -= 1
+        elif ((dirmv == 1) & (cellocp[x][y - 1] == 0)):
+            y -= 1
+        elif ((dirmv == 2) & (cellocp[x + 1][y - 1] == 0)):
+            x += 1
+            y -= 1
+        elif ((dirmv == 3) & (cellocp[x + 1][y] == 0)):
+            x += 1
+        elif ((dirmv == 4) & (cellocp[x + 1][y + 1] == 0)):
+            x += 1
+            y += 1
+        elif ((dirmv == 5) & (cellocp[x][y + 1] == 0)):
+            y += 1
+        elif ((dirmv == 6) & (cellocp[x - 1][y + 1] == 0)):
+            x -= 1
+            y += 1
+        elif ((dirmv == 7) & (cellocp[x - 1][y] == 0)):
+            x -= 1
+
+        self.x = x
+        self.y = y
+        cellocp[oldx][oldy] = 0
+        cellocp[self.x][self.y] = 1
+
     def act(self, celloccupancy):
-        goout = False
-        oldx = self.x
-        oldy = self.y
+        goout = False 
         self.createNewBot = 0
         while (goout != True) :
             theAct = self.DNA[self.programCount]
             if ((theAct >= 0) & (theAct < 8)):
-                motion = theAct + self.route
-                motion %= 8
-                if ((motion == 6)|(motion == 7)|(motion == 0)):
-                    self.x -= 1
-                elif ((motion == 2)|(motion == 3)|(motion == 4)):
-                    self.x += 1
-                if ((motion == 0)|(motion == 1)|(motion == 2)):
-                    self.y -= 1
-                elif ((motion == 4)|(motion == 5)|(motion == 6)):
-                    self.y += 1
-                celloccupancy[oldx][oldy] = 0
-                celloccupancy[self.x][self.y] = 1
+                directionMovement = theAct + self.route
+                directionMovement %= 8
+                self.move(directionMovement, celloccupancy)
                 goout = True
 
             elif ((theAct >= 8) & (theAct < 16)):
@@ -234,7 +255,7 @@ class gen_alg:
             if (missedMoves == outputFrequency):
                 self.drawField()
                 missedMoves = 0
-                time.sleep(0.6)
+                time.sleep(0.1)
             self.botsAction()
             missedMoves += 1
 
