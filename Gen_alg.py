@@ -75,13 +75,6 @@ class bot:
             if (self.programCount > 63):
                 self.programCount -= 64
             
-
-    def drawline(self, window, x1, y1, x2, y2):
-        line = Line(Point(x1, y1), Point(x2, y2))
-        line.setFill('blue')
-        line.setWidth(3)
-        line.draw(window)
-
     def showEnergy(self, window, cellsize):
         botInformation = Text(Point(self.x * cellsize + cellsize/2, self.y * cellsize + cellsize/2), self.energy)
         botInformation.setFill('white')
