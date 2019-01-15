@@ -8,6 +8,7 @@ class bot:
     def __init__(self, x, y, *args):
         self.energy = 30
         self.alive = True
+        self.DNALength = 64
         self.x = x;
         self.y = y;
         self.color = 'blue'
@@ -25,9 +26,14 @@ class bot:
 
 
     def createDNA(self):
-        for i in range(64):
-            self.DNA.append(randint(0, 63))
+        for i in range(self.DNALength):
+            self.DNA.append(randint(0, self.DNALength - 1))
             #self.DNA.append(25)
+
+    def mutation(self):
+        mutationDNAcell = randint(0, self.DNALength - 1)
+        self.DNA[mutationDNAcell] = randint(0, self.DNALength - 1)
+
 
     def move(self, dirmv, cellocp):
         x = self.x
@@ -243,6 +249,9 @@ class gen_alg:
             y = pary + availableCells[directionBirth][1]
             self.newbot(x, y)
             self.mybots[len(self.mybots) - 1].DNA = parentBot.DNA
+
+            if(randint(1, 2) == 1):
+                self.mybots[len(self.mybots) - 1].mutation()
 
         
 

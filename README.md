@@ -30,4 +30,4 @@ git checkout development
 
 Bugs
 ---
-- With unsuccessful DNA generation, the program sometimes freezes
+- With unsuccessful DNA generation, the program sometimes freezes (like i fixed)
