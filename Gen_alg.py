@@ -137,8 +137,7 @@ class bot:
         #if ((self.oldx != self.x) | (self.oldy != self.y)):
             #self.delOldBot(window, cellsize)
         self.drawNewBot(window, cellsize)
-        #if (self.alive):
-         #   self.showEnergy(window, cellsize)    
+        #self.showEnergy(window, cellsize)    
 
     def __str__(self):
         print(self.DNA)
@@ -155,8 +154,15 @@ class gen_alg:
         self.cellsize = cellsize
         self.xmax = xmax
         self.ymax = ymax
-        self.celloccupancy = [[0] * self.ymax for i in range(self.xmax)]
-        # 0 - free  1 - bot  2 - wall 3 - organics
+
+        self.celloccupancy = [[0] * (self.ymax + 1) for i in range(self.xmax + 1)]
+        for i in range(self.xmax + 1):
+            self.celloccupancy[i][self.ymax] = 2 
+        for j in range(self.ymax + 1):
+            self.celloccupancy[self.xmax][j] = 2 
+        self.celloccupancy[self.xmax][self.ymax] = 2 #just in case
+        # 0 - free  1 - bot  2 - wall  3 - organics
+
         self.width = self.xmax * self.cellsize
         self.hight = self.ymax * self.cellsize
         self.window = GraphWin('Genetic algorithm', self.width, self.hight)
@@ -164,7 +170,7 @@ class gen_alg:
     def drawline(self, x1, y1, x2, y2):
 
         Line(Point(x1, y1), Point(x2, y2)).draw(self.window)
-
+ 
     def pause(self):
         message = Text(Point(self.width / 2, self.cellsize / 2), 'Click anywhere to quit.')
         message.draw(self.window)
@@ -218,13 +224,27 @@ class gen_alg:
         for i in range(len(self.mybots)):
             thisBot = self.mybots[i]
             thisBot.drawbot(self.window, self.cellsize)
-        self.drawNotFreePoints()
+        #self.drawNotFreePoints()
 
     def botBirth(self, parentBot):
         parentBot.createNewBot = 0
-        parentBot.energy -= 40
-        self.newbot(parentBot.x + 1, parentBot.y + 1)
-        self.mybots[len(self.mybots) - 1].DNA = parentBot.DNA
+        availableCells = []
+        parx, pary = parentBot.x, parentBot.y 
+
+        for i in [-1, 0, 1]:
+            for j in [-1, 0, 1]:
+                if (([i, j] != [0, 0]) & (self.celloccupancy[parx + i][pary + j] == 0)):
+                    availableCells.append([i, j])
+
+        if (len(availableCells) > 0):
+            parentBot.energy -= 40
+            directionBirth = randint(0, len(availableCells) - 1)
+            x = parx + availableCells[directionBirth][0]
+            y = pary + availableCells[directionBirth][1]
+            self.newbot(x, y)
+            self.mybots[len(self.mybots) - 1].DNA = parentBot.DNA
+
+        
 
     def killBot(self, targetBot):
         targetBot.energy = 0
@@ -243,8 +263,6 @@ class gen_alg:
                 else :
                     self.killBot(self.mybots[i])
 
-
-
     def worldLoop(self):
         self.preStart()
         #self.drawCells()
@@ -262,17 +280,17 @@ class gen_alg:
         self.pause()
 
     def start(self):
-        self.newbot(6, 5)
-        self.newbot(8, 7)
-        self.newbot(10, 6)
-        self.newbot(12, 5)
+        self.newbot(40, 40)
+        self.newbot(50, 50)
+        self.newbot(60, 40)
+        self.newbot(72, 35)
 
         self.worldLoop()
     
 
 def main():
     gol = gen_alg()
-    gol.createWindow(40, 30, 20)
+    gol.createWindow(100, 80, 10)
     gol.start()
 
 
