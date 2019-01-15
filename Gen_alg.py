@@ -11,6 +11,8 @@ class bot:
         self.DNALength = 64
         self.x = x;
         self.y = y;
+        self.oldx = x;
+        self.oldy = y;
         self.color = 'blue'
 
         self.programCount = 0
@@ -140,9 +142,9 @@ class bot:
         newCell.draw(window) 
 
     def drawbot(self, window, cellsize):
-        #if ((self.oldx != self.x) | (self.oldy != self.y)):
-            #self.delOldBot(window, cellsize)
-        self.drawNewBot(window, cellsize)
+        if ((self.oldx != self.x) | (self.oldy != self.y)):
+            self.delOldBot(window, cellsize)
+            self.drawNewBot(window, cellsize)
         #self.showEnergy(window, cellsize)    
 
     def __str__(self):
@@ -226,7 +228,7 @@ class gen_alg:
                     nfp.draw(self.window)
 
     def drawField(self):
-        self.windowClear()
+        #self.windowClear()
         for i in range(len(self.mybots)):
             thisBot = self.mybots[i]
             thisBot.drawbot(self.window, self.cellsize)
@@ -274,7 +276,7 @@ class gen_alg:
 
     def worldLoop(self):
         self.preStart()
-        #self.drawCells()
+        self.drawCells()
         outputFrequency = 1
         missedMoves = outputFrequency
 
