@@ -13,7 +13,8 @@ class bot:
         self.y = y;
         self.oldx = -1;
         self.oldy = -1;
-        self.color = 'blue'
+        self.color = 'cyan'
+        self.childAmount = 0
 
         self.programCount = 0
         self.route = 5
@@ -35,7 +36,6 @@ class bot:
     def mutation(self):
         mutationDNAcell = randint(0, self.DNALength - 1)
         self.DNA[mutationDNAcell] = randint(0, self.DNALength - 1)
-
 
     def move(self, dirmv, cellocp):
         x = self.x
@@ -99,17 +99,11 @@ class bot:
             else :
                 goout = True
 
-
             self.programCount += 1
             if (self.programCount > 63):
                 self.programCount -= 64
-            
-    def showEnergy(self, window, cellsize):
-        botInformation = Text(Point(self.x * cellsize + cellsize/2, self.y * cellsize + cellsize/2), self.energy)
-        botInformation.setFill('white')
-        botInformation.draw(window)
 
-    def delOldBot(self, window, cellsize):
+    def delOldBot(self, window, cellsize, bgcolor):
         p1 = Point(self.oldx * cellsize, self.oldy * cellsize)
         p2 = Point((self.oldx + 1) * cellsize, self.oldy * cellsize)
         p3 = Point((self.oldx + 1) * cellsize, (self.oldy + 1) * cellsize)
@@ -118,9 +112,8 @@ class bot:
         verticles = [p1, p2, p3, p4]
 
         oldCell = Polygon(verticles)
-        oldCell.setFill('white')
+        oldCell.setFill(bgcolor)
         #oldCell.setOutline('white')
-        #oldCell.setWidth(1)
 
         oldCell.draw(window) 
         self.oldx = self.x
@@ -136,16 +129,20 @@ class bot:
 
         newCell = Polygon(verticles)
         newCell.setFill(self.color)
-        #newCell.setOutline('black')
-        #newCell.setWidth(1)
 
         newCell.draw(window) 
 
-    def drawbot(self, window, cellsize):
+    def showEnergy(self, window, cellsize):
+        botInformation = Text(Point(self.x * cellsize + cellsize/2, self.y * cellsize + cellsize/2), self.energy)
+        botInformation.setFill('black')
+        self.drawNewBot(window, cellsize)
+        botInformation.draw(window)
+
+    def drawbot(self, window, cellsize, bgcolor):
         if ((self.oldx != self.x) | (self.oldy != self.y)):
-            self.delOldBot(window, cellsize)
+            self.delOldBot(window, cellsize, bgcolor)
             self.drawNewBot(window, cellsize)
-        #self.showEnergy(window, cellsize)    
+        self.showEnergy(window, cellsize)    
 
     def __str__(self):
         print(self.DNA)
@@ -159,7 +156,7 @@ class gen_alg:
         self.iteration = 0
 
     def createWindow(self, xmax, ymax, cellsize):
-        self.bgcolor = 'white'
+        self.bgcolor = color_rgb(230, 216, 181)
         self.cellsize = cellsize
         self.iterationWidth = 30
         self.xmax = xmax
@@ -249,7 +246,7 @@ class gen_alg:
         #self.windowClear()
         for i in range(len(self.mybots)):
             thisBot = self.mybots[i]
-            thisBot.drawbot(self.window, self.cellsize)
+            thisBot.drawbot(self.window, self.cellsize, self.bgcolor)
         self.showinfo()
         #self.drawNotFreePoints()
 
@@ -271,8 +268,18 @@ class gen_alg:
             self.newbot(x, y)
             self.mybots[len(self.mybots) - 1].DNA = parentBot.DNA
 
-            if(randint(1, 2) == 1):
+            parentBot.childAmount += 1
+            if (parentBot.childAmount == 1):
+                parentBot.color = color_rgb(114, 186, 166)
+            elif (parentBot.childAmount == 2):
+                parentBot.color = 'blue'
+            elif (parentBot.childAmount == 3):
+                parentBot.color = 'brown'
+
+            if (randint(1, 2) == 1):
                 self.mybots[len(self.mybots) - 1].mutation()
+
+            parentBot.drawNewBot(self.window, self.cellsize)
 
     def killBot(self, targetBot):
         targetBot.energy = 0
@@ -319,8 +326,8 @@ class gen_alg:
 
 def main():
     gol = gen_alg()
-    gol.createWindow(80, 60, 10)
-    gol.start(0.5)
+    gol.createWindow(30, 20, 30)
+    gol.start(0.01)
 
 
 
