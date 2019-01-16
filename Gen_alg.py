@@ -11,8 +11,8 @@ class bot:
         self.DNALength = 64
         self.x = x;
         self.y = y;
-        self.oldx = x;
-        self.oldy = y;
+        self.oldx = -1;
+        self.oldy = -1;
         self.color = 'blue'
 
         self.programCount = 0
@@ -43,12 +43,12 @@ class bot:
         oldx = x
         oldy = y
 
-        if ((dirmv == 0) & (cellocp[x - 1][y - 1] == 0)):
+        if ((x > 0) & (y > 0) & (dirmv == 0) & (cellocp[x - 1][y - 1] == 0)):
             x -= 1
             y -= 1
-        elif ((dirmv == 1) & (cellocp[x][y - 1] == 0)):
+        elif ((y > 0) & (dirmv == 1) & (cellocp[x][y - 1] == 0)):
             y -= 1
-        elif ((dirmv == 2) & (cellocp[x + 1][y - 1] == 0)):
+        elif ((y > 0) & (dirmv == 2) & (cellocp[x + 1][y - 1] == 0)):
             x += 1
             y -= 1
         elif ((dirmv == 3) & (cellocp[x + 1][y] == 0)):
@@ -58,10 +58,10 @@ class bot:
             y += 1
         elif ((dirmv == 5) & (cellocp[x][y + 1] == 0)):
             y += 1
-        elif ((dirmv == 6) & (cellocp[x - 1][y + 1] == 0)):
+        elif ((x > 0) & (dirmv == 6) & (cellocp[x - 1][y + 1] == 0)):
             x -= 1
             y += 1
-        elif ((dirmv == 7) & (cellocp[x - 1][y] == 0)):
+        elif ((x > 0) & (dirmv == 7) & (cellocp[x - 1][y] == 0)):
             x -= 1
 
         self.x = x
@@ -156,10 +156,12 @@ class gen_alg:
     def __init__(self):
         self.mybots = []
         self.cellsize = 10
+        self.iteration = 0
 
     def createWindow(self, xmax, ymax, cellsize):
         self.bgcolor = 'white'
         self.cellsize = cellsize
+        self.iterationWidth = 30
         self.xmax = xmax
         self.ymax = ymax
 
@@ -173,7 +175,7 @@ class gen_alg:
 
         self.width = self.xmax * self.cellsize
         self.hight = self.ymax * self.cellsize
-        self.window = GraphWin('Genetic algorithm', self.width, self.hight)
+        self.window = GraphWin('Genetic algorithm', self.width + 1 + self.iterationWidth, self.hight + 1)
     
     def drawline(self, x1, y1, x2, y2):
 
@@ -199,7 +201,7 @@ class gen_alg:
         bg.draw(self.window)
 
     def preStart(self):
-        message = Text(Point(self.width / 2, self.cellsize / 2), 'Click anywhere to start.')
+        message = Text(Point(self.width / 2, self.cellsize), 'Click anywhere to start.')
         message.draw(self.window)
         self.window.getMouse()
         self.windowClear()
@@ -227,11 +229,28 @@ class gen_alg:
                     nfp.setOutline('green')
                     nfp.draw(self.window)
 
+    def showinfo(self):
+        p1 = Point(self.width + 1, 0)
+        p2 = Point(self.width + self.iterationWidth, 0)
+        p3 = Point(self.width + self.iterationWidth, self.iterationWidth * 3)
+        p4 = Point(self.width + 1, self.iterationWidth * 3)
+        
+        verticles = [p1, p2, p3, p4]
+
+        oldinfo = Polygon(verticles)
+        oldinfo.setFill('white')
+        oldinfo.setOutline('white')
+        oldinfo.draw(self.window) 
+        
+        itr = Text(Point(self.width - 1 + self.iterationWidth / 2, self.iterationWidth / 2), self.iteration)
+        itr.draw(self.window)
+
     def drawField(self):
         #self.windowClear()
         for i in range(len(self.mybots)):
             thisBot = self.mybots[i]
             thisBot.drawbot(self.window, self.cellsize)
+        self.showinfo()
         #self.drawNotFreePoints()
 
     def botBirth(self, parentBot):
@@ -255,8 +274,6 @@ class gen_alg:
             if(randint(1, 2) == 1):
                 self.mybots[len(self.mybots) - 1].mutation()
 
-        
-
     def killBot(self, targetBot):
         targetBot.energy = 0
         targetBot.alive = False
@@ -274,35 +291,36 @@ class gen_alg:
                 else :
                     self.killBot(self.mybots[i])
 
-    def worldLoop(self):
+    def worldLoop(self, sleeptime):
         self.preStart()
         self.drawCells()
         outputFrequency = 1
         missedMoves = outputFrequency
 
         while (True):  
+            self.iteration += 1
             if (missedMoves == outputFrequency):
                 self.drawField()
                 missedMoves = 0
-                time.sleep(0.1)
+                time.sleep(sleeptime)
             self.botsAction()
             missedMoves += 1
 
         self.pause()
 
-    def start(self):
-        self.newbot(40, 40)
-        self.newbot(50, 50)
-        self.newbot(60, 40)
-        self.newbot(72, 35)
+    def start(self, sleeptime):
+        self.newbot(5, 3)
+        self.newbot(5, 6)
+        self.newbot(5, 9)
+        self.newbot(5, 12)
 
-        self.worldLoop()
+        self.worldLoop(sleeptime)
     
 
 def main():
     gol = gen_alg()
-    gol.createWindow(100, 80, 10)
-    gol.start()
+    gol.createWindow(80, 60, 10)
+    gol.start(0.5)
 
 
 
