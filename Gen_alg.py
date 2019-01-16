@@ -85,31 +85,31 @@ class bot:
             programStep = 1
             theAct = self.DNA[self.programCount]
             #move :
-            if 0 <= theAct < 8:
+            if (0 <= theAct < 8):
                 directionMovement = theAct + self.route
                 directionMovement %= 8
                 self.move(directionMovement, celloccupancy)
                 goout = True
             #rotate :
-            elif ((theAct >= 8) & (theAct < 15)):
+            elif (8 <= theAct < 15):
                 self.route += theAct + 1
                 self.route %= 8
             #look ahead :
             #photosynthesis :
-            elif ((theAct >= 16) & (theAct < 30)):
+            elif (16 <= theAct < 30):
                 self.energy += 10
                 goout = True
 
-            elif ((theAct >= 30) & (theAct < 40)):
+            elif (30 <= theAct < 40):
                 if (self.energy >= 80):
                     self.createNewBot = 1
                     goout = True
 
-            elif ((theAct >= 40) & (theAct < 61)):
+            elif (40 <= theAct < 61):
                 self.programCount += (theAct - 1)
                 #goout = True   
 
-            elif ((theAct >= 61) & (theAct < 64)):
+            elif (61 <= theAct < 64):
                 goout = True 
 
             else :
@@ -354,7 +354,7 @@ class gen_alg:
 
 def main():
     gol = gen_alg()
-    gol.createWindow(100, 80, 10)
+    gol.createWindow(80, 60, 13)
     gol.start(0.01, 5)
 
 
