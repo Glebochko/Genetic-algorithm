@@ -2,6 +2,7 @@ from graphics import *
 from random import randint
 import time
 
+#const fotosintesisGen = 16
 
 
 class bot:
@@ -17,7 +18,7 @@ class bot:
         self.childAmount = 0
 
         self.programCount = 0
-        self.route = 5
+        self.route = randint(0, 7)
         self.createNewBot = 0
 
         if (len(args) == 0):
@@ -32,6 +33,14 @@ class bot:
         for i in range(self.DNALength):
             self.DNA.append(randint(0, self.DNALength - 1))
             #self.DNA.append(25)
+
+    def createPhotosynthesisDNA(self):
+        for i in range(self.DNALength):
+            x = randint(0, 1)
+            if x == 1 :
+                self.DNA.append(16)
+            elif x == 0 :
+                self.DNA.append(30)
 
     def mutation(self):
         mutationDNAcell = randint(0, self.DNALength - 1)
@@ -73,29 +82,36 @@ class bot:
         goout = False 
         self.createNewBot = 0
         while (goout != True) :
+            programStep = 1
             theAct = self.DNA[self.programCount]
-            if ((theAct >= 0) & (theAct < 8)):
+            #move :
+            if 0 <= theAct < 8:
                 directionMovement = theAct + self.route
                 directionMovement %= 8
                 self.move(directionMovement, celloccupancy)
                 goout = True
-
-            elif ((theAct >= 8) & (theAct < 16)):
-                self.route += theAct
+            #rotate :
+            elif ((theAct >= 8) & (theAct < 15)):
+                self.route += theAct + 1
                 self.route %= 8
-                #goout = True
-            elif ((theAct >= 16) & (theAct < 32)):
+            #look ahead :
+            #photosynthesis :
+            elif ((theAct >= 16) & (theAct < 30)):
                 self.energy += 10
                 goout = True
-            elif ((theAct >= 32) & (theAct < 40)):
+
+            elif ((theAct >= 30) & (theAct < 40)):
                 if (self.energy >= 80):
                     self.createNewBot = 1
                     goout = True
+
             elif ((theAct >= 40) & (theAct < 61)):
                 self.programCount += (theAct - 1)
                 #goout = True   
+
             elif ((theAct >= 61) & (theAct < 64)):
-                goout = True    
+                goout = True 
+
             else :
                 goout = True
 
@@ -142,7 +158,7 @@ class bot:
         if ((self.oldx != self.x) | (self.oldy != self.y)):
             self.delOldBot(window, cellsize, bgcolor)
             self.drawNewBot(window, cellsize)
-        self.showEnergy(window, cellsize)    
+        #self.showEnergy(window, cellsize)    
 
     def __str__(self):
         print(self.DNA)
@@ -214,8 +230,12 @@ class gen_alg:
             self.drawline(0, y, self.width, y)
             y += self.cellsize
 
-    def newbot(self, x, y):
-        self.mybots.append(bot(x, y))
+    def newbot(self, x, y, *args):
+        if (len(args) == 0):
+            self.mybots.append(bot(x, y))
+        elif (len(args) == 1):
+            self.mybots.append(bot(x, y, args[0]))
+
         self.celloccupancy[x][y] = 1
 
     def drawNotFreePoints(self):
@@ -290,7 +310,7 @@ class gen_alg:
     def botsAction(self):
         for i in range(len(self.mybots)):
             if (self.mybots[i].alive):
-                self.mybots[i].energy -= 6
+                self.mybots[i].energy -= 5
                 if (self.mybots[i].energy > 0):
                     self.mybots[i].act(self.celloccupancy)
                     if (self.mybots[i].createNewBot == 1):
@@ -298,10 +318,9 @@ class gen_alg:
                 else :
                     self.killBot(self.mybots[i])
 
-    def worldLoop(self, sleeptime):
+    def worldLoop(self, sleeptime, outputFrequency):
         self.preStart()
         self.drawCells()
-        outputFrequency = 1
         missedMoves = outputFrequency
 
         while (True):  
@@ -315,19 +334,28 @@ class gen_alg:
 
         self.pause()
 
-    def start(self, sleeptime):
+    def start(self, sleeptime, outputFrequency):
         self.newbot(5, 3)
         self.newbot(5, 6)
         self.newbot(5, 9)
         self.newbot(5, 12)
+        myDNA = [0, 8, 16, 0, 8, 16, 0, 0, 
+                 0, 0, 0, 0, 0, 0, 0, 0, 
+                 0, 0, 0, 0, 0, 0, 0, 0, 
+                 0, 0, 0, 0, 0, 0, 0, 0, 
+                 0, 0, 0, 0, 0, 0, 0, 0, 
+                 0, 0, 0, 0, 0, 0, 0, 0, 
+                 0, 0, 0, 0, 0, 0, 0, 0, 
+                 0, 0, 0, 0, 0, 0, 0, 0]
+        #self.newbot(15, 10, myDNA)
 
-        self.worldLoop(sleeptime)
+        self.worldLoop(sleeptime, outputFrequency)
     
 
 def main():
     gol = gen_alg()
-    gol.createWindow(30, 20, 30)
-    gol.start(0.01)
+    gol.createWindow(100, 80, 10)
+    gol.start(0.01, 5)
 
 
 
