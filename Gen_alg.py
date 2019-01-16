@@ -95,22 +95,21 @@ class bot:
                 self.route += theAct + 1
                 self.route %= 8
             #look ahead :
+            elif (theAct == 15):
+                pass
             #photosynthesis :
             elif (16 <= theAct < 30):
                 self.energy += 10
                 goout = True
-
+            #birth new bot:
             elif (30 <= theAct < 40):
                 if (self.energy >= 80):
                     self.createNewBot = 1
                     goout = True
-
-            elif (40 <= theAct < 61):
-                self.programCount += (theAct - 1)
+            #unconditional transition
+            elif (40 <= theAct < 64):
+                self.programCount += (theAct - 2)
                 #goout = True   
-
-            elif (61 <= theAct < 64):
-                goout = True 
 
             else :
                 goout = True
