@@ -2,7 +2,12 @@ from graphics import *
 from random import randint
 import time
 
-#const fotosintesisGen = 16
+
+
+class cell:
+    def __init__(self):
+        self.type = 0
+        self.botNumber = -1
 
 
 class bot:
@@ -23,13 +28,13 @@ class bot:
 
         if (len(args) == 0):
             self.DNA = []
-            self.createDNA()
+            self.createrandomDNA()
 
         if (len(args) == 1):
             self.DNA = args[0]
 
 
-    def createDNA(self):
+    def createrandomDNA(self):
         for i in range(self.DNALength):
             self.DNA.append(randint(0, self.DNALength - 1))
             #self.DNA.append(25)
@@ -46,49 +51,54 @@ class bot:
         mutationDNAcell = randint(0, self.DNALength - 1)
         self.DNA[mutationDNAcell] = randint(0, self.DNALength - 1)
 
-    def move(self, dirmv, cellocp):
+    def move(self, dirmv, botsmap):
         x = self.x
         y = self.y
         oldx = x
         oldy = y
 
-        if ((x > 0) & (y > 0) & (dirmv == 0) & (cellocp[x - 1][y - 1] == 0)):
+        if ((x > 0) & (y > 0) & (dirmv == 0) & (botsmap[x - 1][y - 1].type == 0)):
             x -= 1
             y -= 1
-        elif ((y > 0) & (dirmv == 1) & (cellocp[x][y - 1] == 0)):
+        elif ((y > 0) & (dirmv == 1) & (botsmap[x][y - 1].type == 0)):
             y -= 1
-        elif ((y > 0) & (dirmv == 2) & (cellocp[x + 1][y - 1] == 0)):
+        elif ((y > 0) & (dirmv == 2) & (botsmap[x + 1][y - 1].type == 0)):
             x += 1
             y -= 1
-        elif ((dirmv == 3) & (cellocp[x + 1][y] == 0)):
+        elif ((dirmv == 3) & (botsmap[x + 1][y].type == 0)):
             x += 1
-        elif ((dirmv == 4) & (cellocp[x + 1][y + 1] == 0)):
+        elif ((dirmv == 4) & (botsmap[x + 1][y + 1].type == 0)):
             x += 1
             y += 1
-        elif ((dirmv == 5) & (cellocp[x][y + 1] == 0)):
+        elif ((dirmv == 5) & (botsmap[x][y + 1].type == 0)):
             y += 1
-        elif ((x > 0) & (dirmv == 6) & (cellocp[x - 1][y + 1] == 0)):
+        elif ((x > 0) & (dirmv == 6) & (botsmap[x - 1][y + 1].type == 0)):
             x -= 1
             y += 1
-        elif ((x > 0) & (dirmv == 7) & (cellocp[x - 1][y] == 0)):
+        elif ((x > 0) & (dirmv == 7) & (botsmap[x - 1][y].type == 0)):
             x -= 1
 
         self.x = x
         self.y = y
-        cellocp[oldx][oldy] = 0
-        cellocp[self.x][self.y] = 1
+        botsmap[oldx][oldy].type = 0
+        botsmap[self.x][self.y].type = 1
+        botsmap[self.x][self.y].botNumber = botsmap[oldx][oldy]
+        botsmap[oldx][oldy].botNumber = 0
+        
 
-    def act(self, celloccupancy):
+    def act(self, botsmap):
         goout = False 
         self.createNewBot = 0
-        while (goout != True) :
+        countActs = 0
+        while ((goout != True) & (countActs <= 8)) :
+            countActs += 1
             programStep = 1
             theAct = self.DNA[self.programCount]
             #move :
             if (0 <= theAct < 8):
                 directionMovement = theAct + self.route
                 directionMovement %= 8
-                self.move(directionMovement, celloccupancy)
+                self.move(directionMovement, botsmap)
                 goout = True
             #rotate :
             elif (8 <= theAct < 15):
@@ -98,25 +108,24 @@ class bot:
             elif (theAct == 15):
                 pass
             #photosynthesis :
-            elif (16 <= theAct < 30):
+            elif (16 <= theAct < 23):
                 self.energy += 10
                 goout = True
-            #birth new bot:
-            elif (30 <= theAct < 40):
-                if (self.energy >= 80):
-                    self.createNewBot = 1
-                    goout = True
-            #unconditional transition
-            elif (40 <= theAct < 64):
+            elif (23 <= theAct < 30):
+                self.energy += 10
+                goout = True
+            #unconditional transition :
+            elif (30 <= theAct < 64):
                 self.programCount += (theAct - 2)
-                #goout = True   
 
             else :
                 goout = True
 
-            self.programCount += 1
-            if (self.programCount > 63):
-                self.programCount -= 64
+            self.programCount += programStep
+            self.programCount %= 64
+            #self.energy %= 101
+            if (self.energy >= 80):
+                self.createNewBot = 1
 
     def delOldBot(self, window, cellsize, bgcolor):
         p1 = Point(self.oldx * cellsize, self.oldy * cellsize)
@@ -160,13 +169,16 @@ class bot:
         #self.showEnergy(window, cellsize)    
 
     def __str__(self):
-        print(self.DNA)
-        return 'hp = 30' 
+        print ('-----')
+        print (self.DNA)
+        return '-----' 
 
 
 class gen_alg:
     def __init__(self):
         self.mybots = []
+        self.showParents = 1
+        self.showType = 0
         self.cellsize = 10
         self.iteration = 0
 
@@ -177,12 +189,16 @@ class gen_alg:
         self.xmax = xmax
         self.ymax = ymax
 
-        self.celloccupancy = [[0] * (self.ymax + 1) for i in range(self.xmax + 1)]
+        self.botsmap = []
         for i in range(self.xmax + 1):
-            self.celloccupancy[i][self.ymax] = 2 
+            self.botsmap.append([])
+            for j in range(self.ymax + 1):
+                self.botsmap[i].append(cell())
+
+        for i in range(self.xmax + 1):
+            self.botsmap[i][self.ymax].type = 2
         for j in range(self.ymax + 1):
-            self.celloccupancy[self.xmax][j] = 2 
-        self.celloccupancy[self.xmax][self.ymax] = 2 #just in case
+            self.botsmap[self.xmax][j].type = 2 
         # 0 - free  1 - bot  2 - wall  3 - organics
 
         self.width = self.xmax * self.cellsize
@@ -235,17 +251,20 @@ class gen_alg:
         elif (len(args) == 1):
             self.mybots.append(bot(x, y, args[0]))
 
-        self.celloccupancy[x][y] = 1
+        self.botsmap[x][y].botNumber = len(self.mybots) - 1
+        self.botsmap[x][y].type = 1
 
     def drawNotFreePoints(self):
         for i in range(self.xmax):
             for j in range(self.ymax):
-                if (self.celloccupancy[i][j] != 0):
-                    nfp = Point((i + 0.5) * self.cellsize, (j + 0.5) * self.cellsize)
-                    nfp.setOutline('green')
+                if (self.botsmap[i][j].type != 0):
+                    #thisBot = self.mybots[self.botsmap[i][j].botNumber]
+                    #print(self.botsmap[i][j].botNumber )
+                    #if ((thisBot.oldx != thisBot.x) | (thisBot.oldy != thisBot.y)): 
+                    nfp = Circle(Point((i + 0.5) * self.cellsize, (j + 0.5) * self.cellsize), 2)
                     nfp.draw(self.window)
 
-    def showinfo(self):
+    def clearInfoList(self):
         p1 = Point(self.width + 1, 0)
         p2 = Point(self.width + self.iterationWidth, 0)
         p3 = Point(self.width + self.iterationWidth, self.iterationWidth * 3)
@@ -257,7 +276,9 @@ class gen_alg:
         oldinfo.setFill('white')
         oldinfo.setOutline('white')
         oldinfo.draw(self.window) 
-        
+
+    def showInfo(self):
+        self.clearInfoList()
         itr = Text(Point(self.width - 1 + self.iterationWidth / 2, self.iterationWidth / 2), self.iteration)
         itr.draw(self.window)
 
@@ -266,8 +287,18 @@ class gen_alg:
         for i in range(len(self.mybots)):
             thisBot = self.mybots[i]
             thisBot.drawbot(self.window, self.cellsize, self.bgcolor)
-        self.showinfo()
-        #self.drawNotFreePoints()
+        self.showInfo()
+        self.drawNotFreePoints()
+
+    def setParentColor(self, parentBot):
+            parentBot.childAmount += 1
+            if (parentBot.childAmount == 1):
+                parentBot.color = color_rgb(114, 186, 166)
+            elif (parentBot.childAmount == 2):
+                parentBot.color = 'blue'
+            elif (parentBot.childAmount == 3):
+                parentBot.color = 'brown'
+            parentBot.drawNewBot(self.window, self.cellsize)
 
     def botBirth(self, parentBot):
         parentBot.createNewBot = 0
@@ -276,7 +307,7 @@ class gen_alg:
 
         for i in [-1, 0, 1]:
             for j in [-1, 0, 1]:
-                if (([i, j] != [0, 0]) & (self.celloccupancy[parx + i][pary + j] == 0)):
+                if (([i, j] != [0, 0]) & (self.botsmap[parx + i][pary + j].type == 0)):
                     availableCells.append([i, j])
 
         if (len(availableCells) > 0):
@@ -284,34 +315,28 @@ class gen_alg:
             directionBirth = randint(0, len(availableCells) - 1)
             x = parx + availableCells[directionBirth][0]
             y = pary + availableCells[directionBirth][1]
-            self.newbot(x, y)
-            self.mybots[len(self.mybots) - 1].DNA = parentBot.DNA
-
-            parentBot.childAmount += 1
-            if (parentBot.childAmount == 1):
-                parentBot.color = color_rgb(114, 186, 166)
-            elif (parentBot.childAmount == 2):
-                parentBot.color = 'blue'
-            elif (parentBot.childAmount == 3):
-                parentBot.color = 'brown'
+            self.newbot(x, y, parentBot.DNA)
+            #self.mybots[len(self.mybots) - 1].DNA = parentBot.DNA
+            if (self.showParents == 1):
+                self.setParentColor(parentBot)
+            elif(self.showType == 1):
+                pass
 
             if (randint(1, 2) == 1):
                 self.mybots[len(self.mybots) - 1].mutation()
-
-            parentBot.drawNewBot(self.window, self.cellsize)
 
     def killBot(self, targetBot):
         targetBot.energy = 0
         targetBot.alive = False
         targetBot.color = 'gray'
-        self.celloccupancy[targetBot.x][targetBot.y] = 3
+        self.botsmap[targetBot.x][targetBot.y].type = 3
 
     def botsAction(self):
         for i in range(len(self.mybots)):
             if (self.mybots[i].alive):
                 self.mybots[i].energy -= 5
                 if (self.mybots[i].energy > 0):
-                    self.mybots[i].act(self.celloccupancy)
+                    self.mybots[i].act(self.botsmap)
                     if (self.mybots[i].createNewBot == 1):
                         self.botBirth(self.mybots[i])
                 else :
@@ -338,15 +363,15 @@ class gen_alg:
         self.newbot(5, 6)
         self.newbot(5, 9)
         self.newbot(5, 12)
-        myDNA = [0, 8, 16, 0, 8, 16, 0, 0, 
-                 0, 0, 0, 0, 0, 0, 0, 0, 
-                 0, 0, 0, 0, 0, 0, 0, 0, 
-                 0, 0, 0, 0, 0, 0, 0, 0, 
-                 0, 0, 0, 0, 0, 0, 0, 0, 
-                 0, 0, 0, 0, 0, 0, 0, 0, 
-                 0, 0, 0, 0, 0, 0, 0, 0, 
-                 0, 0, 0, 0, 0, 0, 0, 0]
-        #self.newbot(15, 10, myDNA)
+        myDNA = [16, 16, 16, 16, 16, 16, 16, 16, 
+                 16, 16, 16, 16, 16, 16, 16, 16, 
+                 16, 16, 16, 16, 16, 16, 16, 16, 
+                 16, 16, 16, 16, 16, 16, 16, 16, 
+                 16, 16, 16, 16, 16, 16, 16, 16, 
+                 16, 16, 16, 16, 16, 16, 16, 16, 
+                 16, 16, 16, 16, 16, 16, 16, 16, 
+                 16, 16, 16, 16, 16, 16, 16, 16]
+        self.newbot(40, 30, myDNA)
 
         self.worldLoop(sleeptime, outputFrequency)
     
@@ -354,7 +379,7 @@ class gen_alg:
 def main():
     gol = gen_alg()
     gol.createWindow(80, 60, 13)
-    gol.start(0.01, 5)
+    gol.start(1, 5)
 
 
 
